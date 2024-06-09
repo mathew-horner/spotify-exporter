@@ -10,7 +10,7 @@ use serde::Serialize;
 
 use crate::spotify::get_tokens::Response as Tokens;
 use crate::spotify::list_user_tracks::Item as Track;
-use crate::utils::{debug, read_json, write_json};
+use crate::utils::{read_json, write_json};
 
 const CACHE_DIR: &str = "cache";
 const CACHE_TOKEN_FILE: &str = "tokens.json";
@@ -40,7 +40,6 @@ impl Persistence {
         let last_snapshot = self.get_last_snapshot();
         let next_snapshot = last_snapshot.clone().unwrap_or(0) + 1;
         let snapshot = Snapshot::new(&self.output_dir, next_snapshot);
-
         snapshot.write_collection_file(&tracks);
         snapshot.write_metadata_file();
 
@@ -49,10 +48,7 @@ impl Persistence {
             snapshot.write_diff_file(&old_tracks, &tracks);
         }
 
-        debug(&format!(
-            "Data written to new snapshot directory: {:?}",
-            snapshot.dir
-        ));
+        log::info!("Data written to new snapshot directory: {:?}", snapshot.dir);
     }
 
     fn snapshot_path(&self, snapshot: usize) -> PathBuf {
@@ -201,19 +197,19 @@ fn extract_snapshot_dir_number(entry: &DirEntry) -> Option<usize> {
     let captures = regex.captures(&filename)?;
 
     if captures.len() != 1 {
-        debug(&format!(
+        log::warn!(
             "snapshot directory candidate {filename} had the wrong number of captures: {}",
             captures.len(),
-        ));
+        );
         return None;
     }
 
     match captures[0].parse() {
         Ok(snapshot) => Some(snapshot),
         Err(error) => {
-            debug(&format!(
+            log::warn!(
                 "snapshot directory candidate {filename} had an improperly formatted number: {error}"
-            ));
+            );
             None
         }
     }

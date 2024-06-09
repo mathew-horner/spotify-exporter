@@ -1,21 +1,10 @@
+use std::fs;
 use std::fs::{File, OpenOptions};
 use std::io::Write;
 use std::path::Path;
-use std::{env, fs};
 
-use lazy_static::lazy_static;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
-
-lazy_static! {
-    static ref DEBUG_MODE: bool = env::var("DEBUG_MODE") == Ok("true".to_string());
-}
-
-pub fn debug(message: &str) {
-    if *DEBUG_MODE {
-        println!("[^] {message}");
-    }
-}
 
 pub fn read_json<T>(path: &Path) -> T
 where
