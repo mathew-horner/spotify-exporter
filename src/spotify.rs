@@ -73,7 +73,7 @@ pub mod get_tokens {
     pub const ENDPOINT: &str = "https://accounts.spotify.com/api/token";
 
     /// Response from the Spotify token endpoint.
-    #[derive(Debug, Deserialize, Serialize)]
+    #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct Response {
         /// A Spotify access token.
         pub access_token: String,
