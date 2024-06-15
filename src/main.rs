@@ -28,8 +28,8 @@ struct Args {
 enum Command {
     /// Create a snapshot of the currently liked songs on Spotify.
     Snapshot,
-    /// Show data for the last snapshot that was run.
-    LastSnapshot,
+    /// Show data about the snapshots a user has ran.
+    ListSnapshots,
 }
 
 #[tokio::main]
@@ -47,9 +47,9 @@ async fn main() {
             let tracks = client.list_all_user_tracks(&tokens.access_token).await;
             database.snapshot(tracks).await;
         }
-        Command::LastSnapshot => {
-            if let Some(snapshot_info) = database.get_last_snapshot_info().await {
-                println!("{snapshot_info}");
+        Command::ListSnapshots => {
+            for snapshot in database.list_snapshots().await {
+                println!("{snapshot}");
             }
         }
     }

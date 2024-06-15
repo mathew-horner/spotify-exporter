@@ -67,12 +67,20 @@ impl Database {
             .unwrap()
     }
 
-    /// Gather basic information about the last snapshot that the user ran.
-    pub async fn get_last_snapshot_info(&self) -> Option<LastSnapshotInfo> {
+    /// Read basic information about all the snapshots a user has ran.
+    pub async fn list_snapshots(&self) -> Vec<Snapshot> {
         sqlx::query_as(
-            "SELECT timestamp, generation FROM spotify_track_cache ORDER BY generation DESC LIMIT 1;"
+            r"
+            SELECT
+                generation,
+                MIN(timestamp) AS timestamp,
+                COUNT(*) AS track_count
+            FROM spotify_track_cache
+            GROUP BY generation
+            ORDER BY generation DESC;
+            ",
         )
-        .fetch_optional(&self.database)
+        .fetch_all(&self.database)
         .await
         .unwrap()
     }
@@ -111,17 +119,23 @@ impl From<Tokens> for crate::spotify::get_tokens::Response {
     }
 }
 
-/// Basic information about the last snapshot a user ran.
+/// Basic information about a snapshot.
 #[derive(sqlx::FromRow)]
-pub struct LastSnapshotInfo {
-    /// What time the snapshot was ran.
-    pub timestamp: DateTime<Local>,
+pub struct Snapshot {
     /// The number of snapshots that have been ran so far.
     pub generation: i32,
+    /// What time the snapshot was ran.
+    pub timestamp: DateTime<Local>,
+    /// How many tracks were saved.
+    pub track_count: i64,
 }
 
-impl std::fmt::Display for LastSnapshotInfo {
+impl std::fmt::Display for Snapshot {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Snapshot #{} ran at {}", self.generation, self.timestamp)
+        write!(
+            f,
+            "Snapshot #{} ran at {} - {} tracks",
+            self.generation, self.timestamp, self.track_count
+        )
     }
 }
