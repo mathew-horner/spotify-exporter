@@ -19,7 +19,7 @@ async fn main() {
     let http_client = HttpClient::new();
     let client = spotify::Client::new(http_client, config.credentials);
     let tokens = get_tokens(&client, &database).await;
-    let tracks = client.list_all_user_tracks(&tokens.access_token);
+    let tracks = client.list_all_user_tracks(&tokens.access_token).await;
     database.snapshot(tracks).await;
 }
 
@@ -35,7 +35,7 @@ async fn get_tokens(client: &spotify::Client, database: &Database) -> Tokens {
         tokens.into()
     } else {
         log::info!("Directing user through authorization code flow");
-        let tokens = auth_flow::get_tokens(client);
+        let tokens = auth_flow::get_tokens(client).await;
         database.cache_tokens(tokens.clone().into()).await;
         tokens
     }

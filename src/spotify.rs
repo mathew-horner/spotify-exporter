@@ -19,7 +19,7 @@ impl Client {
     }
 
     /// Retrieve tokens from the token endpoint, using the auth code flow.
-    pub fn get_tokens(&self, authorization_code: &str) -> get_tokens::Response {
+    pub async fn get_tokens(&self, authorization_code: &str) -> get_tokens::Response {
         #[allow(deprecated)]
         let credentials = base64::encode(format!(
             "{}:{}",
@@ -38,12 +38,12 @@ impl Client {
             .build()
             .unwrap();
 
-        self.http_client.fetch(request)
+        self.http_client.fetch(request).await
     }
 
     /// This function can make multiple requests as the response from the
     /// Spotify API is paginated.
-    pub fn list_all_user_tracks(&self, token: &str) -> Vec<list_user_tracks::Item> {
+    pub async fn list_all_user_tracks(&self, token: &str) -> Vec<list_user_tracks::Item> {
         let mut url = String::from(list_user_tracks::ENDPOINT);
         let mut items = Vec::new();
         loop {
@@ -54,7 +54,7 @@ impl Client {
                 .build()
                 .unwrap();
 
-            let response: list_user_tracks::Response = self.http_client.fetch(request);
+            let response: list_user_tracks::Response = self.http_client.fetch(request).await;
             items.extend(response.items);
             if let Some(next) = response.next {
                 url = next;

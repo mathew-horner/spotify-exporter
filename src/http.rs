@@ -1,6 +1,6 @@
 use std::ops::Deref;
 
-use reqwest::blocking::{Client as ReqwestClient, Request};
+use reqwest::{Client as ReqwestClient, Request};
 use serde::de::DeserializeOwned;
 
 /// Wrapper for reqwest::Client.
@@ -16,17 +16,21 @@ impl Client {
     /// Makes an HTTP request and attempts to deserialize it.
     ///
     /// This function will panic on a non-200 response.
-    pub fn fetch<T>(&self, request: Request) -> T
+    pub async fn fetch<T>(&self, request: Request) -> T
     where
         T: DeserializeOwned,
     {
-        let response = self.0.execute(request).expect("failed to send request");
+        let response = self
+            .0
+            .execute(request)
+            .await
+            .expect("failed to send request");
         let status = response.status();
         if !status.is_success() {
             panic!("response was non-OK: {status}");
         }
 
-        let body = response.text().expect("failed to get response text");
+        let body = response.text().await.expect("failed to get response text");
         serde_json::from_str(&body).expect("failed to deserialize body")
     }
 }

@@ -41,7 +41,7 @@ impl ClientCredentials {
 
 /// Put the user through the Authorization Code flow and then fetch access and
 /// refresh tokens for them.
-pub fn get_tokens(client: &spotify::Client) -> Tokens {
+pub async fn get_tokens(client: &spotify::Client) -> Tokens {
     let mut url: Url = ENDPOINT
         .parse()
         .expect("failed to parse authorize endpoint url");
@@ -61,7 +61,7 @@ pub fn get_tokens(client: &spotify::Client) -> Tokens {
         .expect("failed to join on Rouille server thread handle")
         .expect("an error occurred in the Rouille server thread");
 
-    client.get_tokens(&authorization_code)
+    client.get_tokens(&authorization_code).await
 }
 
 /// Boots up a short lived HTTP server to capture the user's authorization code
