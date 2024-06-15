@@ -1,6 +1,7 @@
-use config::Config;
-use database::Database;
+use clap::{Parser, Subcommand};
 
+use crate::config::Config;
+use crate::database::Database;
 use crate::http::Client as HttpClient;
 use crate::spotify::get_tokens::Response as Tokens;
 
@@ -10,17 +11,48 @@ mod database;
 mod http;
 mod spotify;
 
+/// Manage your Spotify library backups.
+#[derive(Parser, Debug)]
+#[command(
+    version,
+    about,
+    long_about = "spotify-exporter is a program that keeps backups of your liked on songs on Spotify."
+)]
+struct Args {
+    #[command(subcommand)]
+    command: Command,
+}
+
+/// The subcommand options for this programm.
+#[derive(Debug, Subcommand)]
+enum Command {
+    /// Create a snapshot of the currently liked songs on Spotify.
+    Snapshot,
+    /// Show data for the last snapshot that was run.
+    LastSnapshot,
+}
+
 #[tokio::main]
 async fn main() {
     env_logger::init();
     let config = Config::from_env();
+    let args = Args::parse();
     let database = Database::new(&config.sqlite_url).await;
-    // let persistence = Persistence::new(config.output_dir);
-    let http_client = HttpClient::new();
-    let client = spotify::Client::new(http_client, config.credentials);
-    let tokens = get_tokens(&client, &database).await;
-    let tracks = client.list_all_user_tracks(&tokens.access_token).await;
-    database.snapshot(tracks).await;
+
+    match args.command {
+        Command::Snapshot => {
+            let http_client = HttpClient::new();
+            let client = spotify::Client::new(http_client, config.credentials);
+            let tokens = get_tokens(&client, &database).await;
+            let tracks = client.list_all_user_tracks(&tokens.access_token).await;
+            database.snapshot(tracks).await;
+        }
+        Command::LastSnapshot => {
+            if let Some(snapshot_info) = database.get_last_snapshot_info().await {
+                println!("{snapshot_info}");
+            }
+        }
+    }
 }
 
 /// Retrieve up-to-date access and refresh tokens to authenticate with Spotify.

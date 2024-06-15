@@ -1,3 +1,4 @@
+use chrono::{DateTime, Local};
 use sqlx::{Pool, QueryBuilder, Sqlite};
 
 use crate::spotify::list_user_tracks::Item as Track;
@@ -65,6 +66,16 @@ impl Database {
             .await
             .unwrap()
     }
+
+    /// Gather basic information about the last snapshot that the user ran.
+    pub async fn get_last_snapshot_info(&self) -> Option<LastSnapshotInfo> {
+        sqlx::query_as(
+            "SELECT timestamp, generation FROM spotify_track_cache ORDER BY generation DESC LIMIT 1;"
+        )
+        .fetch_optional(&self.database)
+        .await
+        .unwrap()
+    }
 }
 
 /// Spotify token data stored in the database.
@@ -97,5 +108,20 @@ impl From<Tokens> for crate::spotify::get_tokens::Response {
             refresh_token: tokens.refresh_token,
             expires_in: tokens.expires_in.try_into().unwrap(),
         }
+    }
+}
+
+/// Basic information about the last snapshot a user ran.
+#[derive(sqlx::FromRow)]
+pub struct LastSnapshotInfo {
+    /// What time the snapshot was ran.
+    pub timestamp: DateTime<Local>,
+    /// The number of snapshots that have been ran so far.
+    pub generation: i32,
+}
+
+impl std::fmt::Display for LastSnapshotInfo {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Snapshot #{} ran at {}", self.generation, self.timestamp)
     }
 }
