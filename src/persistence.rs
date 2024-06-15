@@ -22,9 +22,9 @@ const SNAPSHOT_METADATA_FILE: &str = "metadata.json";
 
 const SNAPSHOT_DIRECTORY_REGEX: &str = r#"snapshot-\d{6}"#;
 
-/// Controls writes to the configured output directory; can be used to store data such as
-/// individual "snapshots" (a representation of the Spotify data at a given time), cached
-/// tokens, etc.
+/// Controls writes to the configured output directory; can be used to store
+/// data such as individual "snapshots" (a representation of the Spotify data at
+/// a given time), cached tokens, etc.
 pub struct Persistence {
     output_dir: PathBuf,
 }
@@ -34,8 +34,8 @@ impl Persistence {
         Self { output_dir }
     }
 
-    /// Persist Spotify track data, some metadata, and a diff between this snapshot and the most
-    /// recent one, if applicable.
+    /// Persist Spotify track data, some metadata, and a diff between this
+    /// snapshot and the most recent one, if applicable.
     pub fn snapshot(&self, tracks: Vec<Track>) {
         let last_snapshot = self.get_last_snapshot();
         let next_snapshot = last_snapshot.clone().unwrap_or(0) + 1;
@@ -105,11 +105,12 @@ impl<'a> Diff<'a> {
         let new_track_ids: HashSet<_, RandomState> =
             HashSet::from_iter(new_tracks.iter().map(|t| t.track.id.as_str()));
 
-        // Neat little trick here, A - B will show the elements of A that aren't in B, so we can
-        // just do set difference both ways to get the set of added and removed elements.
+        // Neat little trick here, A - B will show the elements of A that aren't in B,
+        // so we can just do set difference both ways to get the set of added
+        // and removed elements.
         //
-        // We collect IDs to use for filtering later because hashing the entire struct is not
-        // necessary.
+        // We collect IDs to use for filtering later because hashing the entire struct
+        // is not necessary.
 
         let added_track_ids: HashSet<_> = new_track_ids
             .difference(&old_track_ids)

@@ -3,7 +3,9 @@ use std::ops::Deref;
 use reqwest::blocking::{Client as ReqwestClient, Request};
 use serde::de::DeserializeOwned;
 
-// NOTE: This client is *blocking*.
+/// Wrapper for reqwest::Client.
+///
+/// NOTE: This client is *blocking*, not async.
 pub struct Client(ReqwestClient);
 
 impl Client {

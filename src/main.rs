@@ -22,9 +22,14 @@ fn main() {
     persistence.snapshot(tracks);
 }
 
+/// Retrieve up-to-date access and refresh tokens to authenticate with Spotify.
+///
+/// This function may direct the user through an authorization code flow on the
+/// Spotify website if necessary.
 fn get_tokens(client: &spotify::Client, persistence: &Persistence) -> Tokens {
     if let Some(tokens) = persistence.get_cached_tokens() {
-        // TODO: We need to use the refresh token to get a new access token here and update the cache.
+        // TODO: We need to use the refresh token to get a new access token here and
+        // update the cache.
         log::info!("Using tokens from cache");
         tokens
     } else {
