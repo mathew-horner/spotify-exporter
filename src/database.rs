@@ -8,8 +8,8 @@ pub struct Database {
 }
 
 impl Database {
-    pub async fn new() -> Self {
-        let database = Pool::connect("sqlite:data.db").await.unwrap();
+    pub async fn new(url: &str) -> Self {
+        let database = Pool::connect(url).await.unwrap();
         Self { database }
     }
 

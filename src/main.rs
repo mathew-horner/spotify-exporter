@@ -14,7 +14,7 @@ mod spotify;
 async fn main() {
     env_logger::init();
     let config = Config::from_env();
-    let database = Database::new().await;
+    let database = Database::new(&config.sqlite_url).await;
     // let persistence = Persistence::new(config.output_dir);
     let http_client = HttpClient::new();
     let client = spotify::Client::new(http_client, config.credentials);
